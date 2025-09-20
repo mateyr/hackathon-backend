@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime, timezone
+from sqlalchemy import event
 
 
 class TimestampMixin:
@@ -20,3 +21,9 @@ class SoftDeleteMixin:
     @property
     def is_deleted(self) -> bool:
         return self.deleted_at is not None
+
+
+@event.listens_for(SQLModel, "before_update", propagate=True)
+def auto_update_timestamp(mapper, connection, target):
+    if hasattr(target, "updated_at"):
+        setattr(target, "updated_at", datetime.now(timezone.utc))

@@ -11,7 +11,7 @@ from hackathon_backend.services import auth
 from hackathon_backend.schemas.auth_token import AuthToken
 
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=ApiResponse[AuthToken])
@@ -26,7 +26,7 @@ def login_access_token(
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
-    elif not user.is_active:
+    elif user.deleted_at is not None:
         raise HTTPException(status_code=400, detail="Inactive user")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     auth_token = AuthToken(

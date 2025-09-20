@@ -7,7 +7,7 @@ from hackathon_backend.core.config import settings
 from hackathon_backend.core.db import engine
 
 
-reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login/")
+reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
 
 def get_db() -> Generator[Session, None, None]:

@@ -1,9 +1,10 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, text
 from sqlalchemy import pool
 
 from alembic import context
+from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,9 +21,12 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 
 from hackathon_backend.models.user import User
+from hackathon_backend.models.role import Role
+from hackathon_backend.models.user_clinic_role import UserClinicRole
+from hackathon_backend.models.clinic import Clinic
 from hackathon_backend.core.config import settings
 
-target_metadata = User.metadata
+target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

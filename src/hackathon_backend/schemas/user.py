@@ -42,7 +42,5 @@ class UserMe(UserBase):
     clinics: List[ClinicRole] = []
 
 
-
 class UserMeResponse(SQLModel):
-    user: UserMe   
-
+    user: UserMe

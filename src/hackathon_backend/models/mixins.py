@@ -1,29 +1,43 @@
-from sqlmodel import SQLModel, Field
 from datetime import datetime, timezone
-from sqlalchemy import event
+from sqlalchemy import Column, event, DateTime, text
+from sqlmodel import DateTime, SQLModel, func
+from sqlalchemy.orm import declared_attr
 
 
-class TimestampMixin:
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), nullable=False
-    )
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), nullable=False
-    )
+class CreatedAtMixin:
+    @declared_attr
+    def created_at(self):
+        return Column(DateTime(timezone=True), server_default=func.now(), nullable=True)
 
 
-class SoftDeleteMixin:
-    deleted_at: datetime | None = Field(default=None)
+class UpdatedAtMixin:
+    @declared_attr
+    def updated_at(self):
+        return Column(
+            DateTime(timezone=True),
+            server_default=func.now(),
+            onupdate=func.now(),
+            nullable=True,
+        )
+
+
+class DeletedAtMixin:
+    @declared_attr
+    def deleted_at(self):
+        return Column(
+            DateTime(timezone=True),
+            server_default=text("NULL"),
+            default=None,
+            index=True,
+        )
 
     def soft_delete(self):
-        self.deleted_at = datetime.now(timezone.utc)
+        self.deleted_at = func.now()
 
     @property
     def is_deleted(self) -> bool:
         return self.deleted_at is not None
 
 
-@event.listens_for(SQLModel, "before_update", propagate=True)
-def auto_update_timestamp(mapper, connection, target):
-    if hasattr(target, "updated_at"):
-        setattr(target, "updated_at", datetime.now(timezone.utc))
+class DTMixin(CreatedAtMixin, UpdatedAtMixin, DeletedAtMixin):
+    pass

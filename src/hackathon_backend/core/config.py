@@ -13,7 +13,6 @@ def parse_cors(v: Any) -> list[str] | str:
 
 
 class Settings(BaseSettings):
-    # model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     model_config = SettingsConfigDict(
         # Use top level .env file (one level above ./backend/)
         env_file=".env",
@@ -50,7 +49,7 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
         return PostgresDsn.build(
-            scheme="postgresql+psycopg",
+            scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_SERVER,

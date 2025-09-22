@@ -1,57 +1,54 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any
-import jwt
-from passlib.context import CryptContext
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from sqlmodel import Session
+from datetime import timedelta
+from typing import Optional
+from fastapi import Depends, Request
+from fastapi_users import BaseUserManager, FastAPIUsers
+from fastapi_users.authentication import (
+    AuthenticationBackend,
+    BearerTransport,
+    JWTStrategy,
+)
+from fastapi_users.db import SQLAlchemyUserDatabase
 
-from hackathon_backend.core.config import settings
-from hackathon_backend.core.deps import get_db
+
+from hackathon_backend.core.db import async_session, get_user_db
 from hackathon_backend.models.user import User
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-ALGORITHM = "HS256"
-
-oauth2_scheme = OAuth2PasswordBearer(f"{settings.API_V1_STR}/auth/login")
+from hackathon_backend.core.config import settings
+from hackathon_backend.core.fastapi_users.custom_jwt_strategy import CustomJWTStrategy
+from hackathon_backend.services import user_policy_service
 
 
-def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
-    expire = datetime.now(timezone.utc) + expires_delta
-    to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+class UserManager(BaseUserManager[User, int]):
+    async def on_after_register(self, user: User, request: Optional[Request] = None):
+        print(f"User {user.id} has registered.")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
+    yield UserManager(user_db)
 
 
-def extract_user_id(token: str) -> int:
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = int(payload.get("sub"))
-        if user_id is None:
-            raise ValueError("User ID not found in token")
-        return user_id
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.PyJWTError as e:
-        print("Error PyJWT:", e)
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
+bearer_transport = BearerTransport(tokenUrl="auth/login")
+
+access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+user_policy_service_instance = user_policy_service.UserPolicyService(
+    session_maker=async_session
+)
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme), session: Session = Depends(get_db)
-) -> User:
-    """
-    Return the user athenticate form JWT.
-    """
-    print("=== Token recibido en get_current_user ===")
-    print(repr(token))
-    print("=========================================")
-    user_id = extract_user_id(token)
-    user = session.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
-    return user
+def get_jwt_strategy() -> CustomJWTStrategy:
+    return CustomJWTStrategy(
+        secret=settings.SECRET_KEY,
+        lifetime_seconds=int(access_token_expires.total_seconds()),
+        user_policy_service=user_policy_service_instance,
+    )
+
+
+auth_backend = AuthenticationBackend(
+    name="jwt",
+    transport=bearer_transport,
+    get_strategy=get_jwt_strategy,
+)
+
+fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
+
+current_active_user = fastapi_users.current_user(active=True)

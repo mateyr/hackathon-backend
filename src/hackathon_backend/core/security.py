@@ -11,6 +11,7 @@ from fastapi_users.db import SQLAlchemyUserDatabase
 
 
 from hackathon_backend.core.db import async_session, get_user_db
+from hackathon_backend.core.fastapi_users.custom_authentication_backend import CustomAuthenticationBackend
 from hackathon_backend.models.user import User
 from hackathon_backend.core.config import settings
 from hackathon_backend.core.fastapi_users.custom_jwt_strategy import CustomJWTStrategy
@@ -43,7 +44,7 @@ def get_jwt_strategy() -> CustomJWTStrategy:
     )
 
 
-auth_backend = AuthenticationBackend(
+auth_backend = CustomAuthenticationBackend(
     name="jwt",
     transport=bearer_transport,
     get_strategy=get_jwt_strategy,

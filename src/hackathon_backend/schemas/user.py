@@ -6,6 +6,11 @@ from sqlmodel import SQLModel
 from hackathon_backend.schemas.clinic import ClinicRole
 
 
+class LoginResponse(SQLModel):
+    access_token: str
+    token_type: str
+
+
 class UserBase(SQLModel):
     first_name: str
     middle_name: str

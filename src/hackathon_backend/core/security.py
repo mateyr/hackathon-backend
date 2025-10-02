@@ -5,13 +5,11 @@ from fastapi_users import BaseUserManager, FastAPIUsers
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
-    JWTStrategy,
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 
 
 from hackathon_backend.core.db import async_session, get_user_db
-from hackathon_backend.core.fastapi_users.custom_authentication_backend import CustomAuthenticationBackend
 from hackathon_backend.models.user import User
 from hackathon_backend.core.config import settings
 from hackathon_backend.core.fastapi_users.custom_jwt_strategy import CustomJWTStrategy
@@ -27,7 +25,7 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db
     yield UserManager(user_db)
 
 
-bearer_transport = BearerTransport(tokenUrl="auth/login")
+bearer_transport = BearerTransport(tokenUrl="api/v1/auth/login")
 
 access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -44,7 +42,7 @@ def get_jwt_strategy() -> CustomJWTStrategy:
     )
 
 
-auth_backend = CustomAuthenticationBackend(
+auth_backend = AuthenticationBackend(
     name="jwt",
     transport=bearer_transport,
     get_strategy=get_jwt_strategy,

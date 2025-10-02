@@ -25,7 +25,10 @@ if config.config_file_name is not None:
 
 from hackathon_backend.models.user import User
 from hackathon_backend.models.role import Role
-from hackathon_backend.models.health_center import health_center
+from hackathon_backend.models.health_center import HealthCenter
+from hackathon_backend.models.doctor import Doctor
+from hackathon_backend.models.appointment import Appointment
+from hackathon_backend.models.patient import Patient
 
 from hackathon_backend.core.config import settings
 

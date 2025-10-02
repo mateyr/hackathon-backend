@@ -1,8 +1,9 @@
 from sqlmodel import Relationship, SQLModel, Field
+from .mixins import DTMixin
 
 
 # security.role table
-class health_center(SQLModel, table=True):
+class HealthCenterBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(nullable=False, max_length=50)
     address: str = Field(nullable=False, max_length=50)
@@ -15,3 +16,7 @@ class health_center(SQLModel, table=True):
     # user_clinic_roles: list["UserClinicRole"] = Relationship(
     #     back_populates="clinic",
     # )
+
+
+class HealthCenter(HealthCenterBase, DTMixin, table=True):
+    pass

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, FastAPIUsers
+from fastapi_users import BaseUserManager, FastAPIUsers, InvalidID
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
@@ -19,6 +19,12 @@ from hackathon_backend.services import user_policy_service
 class UserManager(BaseUserManager[User, int]):
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"User {user.id} has registered.")
+
+    def parse_id(self, value: str) -> int:
+        try:
+            return int(value)
+        except ValueError as e:
+            raise InvalidID() from e
 
 
 async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):

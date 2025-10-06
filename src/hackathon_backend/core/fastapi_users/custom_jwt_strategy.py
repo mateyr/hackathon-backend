@@ -32,7 +32,7 @@ class CustomJWTStrategy(JWTStrategy):
             role_id = None
 
         data = {
-            "user_id": str(user.id),
+            "sub": str(user.id),
             "aud": self.token_audience,
             "health_center_id": health_center_id,
             "role_id": role_id,

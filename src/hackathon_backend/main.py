@@ -5,7 +5,6 @@ from starlette.middleware.cors import CORSMiddleware
 from hackathon_backend.core.casbin.enforcer import create_casbin_rule, enforcer
 from hackathon_backend.core.config import settings
 from hackathon_backend.api.main import api_router
-from hackathon_backend.middlewares.fastapi_casbin_auth import CasbinMiddleware
 from hackathon_backend.core.security import auth_backend, fastapi_users
 
 
@@ -42,7 +41,5 @@ if settings.all_cors_origins:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-app.add_middleware(CasbinMiddleware, enforcer=enforcer)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

@@ -40,12 +40,7 @@ class UsersResponse(SQLModel):
     users: List[UserGet]
 
 
-class UserMe(UserBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-    clinics: List[ClinicRole] = []
-
-
-class UserMeResponse(SQLModel):
-    user: UserMe
+class UserMeResponse(UserBase):
+    first_name: str
+    last_name: str
+    email: EmailStr
